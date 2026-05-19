@@ -1,6 +1,6 @@
 # easyview-demo — 5 分钟生产问题定位演练
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/REPLACE_ME/easyview-demo?quickstart=1)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/zzzj1233/easyview-demo?quickstart=1)
 
 一个开箱即用的可观测性 + 故障注入 demo，**目标**：让你按工程化 SOP 在 5 分钟内定位 90% 的常见生产问题。
 
