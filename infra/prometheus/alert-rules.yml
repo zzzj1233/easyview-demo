@@ -1,0 +1,79 @@
+groups:
+  - name: easyview-demo-core
+    interval: 15s
+    rules:
+
+      - alert: ServiceRTHigh
+        expr: |
+          histogram_quantile(0.99,
+            sum by (le, application, instance) (
+              rate(http_server_requests_seconds_bucket{uri!~"/actuator.*|/chaos.*"}[1m])
+            )
+          ) > 1
+        for: 1m
+        labels:
+          severity: warning
+          runbook: "01-rt-high"
+        annotations:
+          summary: "{{ $labels.application }} P99 > 1s @ {{ $labels.instance }}"
+          description: "P99 latency exceeded 1s for 1 minute. Likely caused by slow DB / GC / downstream / code bug."
+          dashboard: "http://localhost:3000/d/svc-overview/service-overview?var-app={{ $labels.application }}"
+          trace_link: "http://localhost:18080/trace?serviceName={{ $labels.application }}"
+          runbook_url: "https://github.com/REPLACE_ME/easyview-demo/blob/main/runbook/01-rt-high.md"
+
+      - alert: ServiceErrorRateHigh
+        expr: |
+          (sum by (application, instance) (rate(http_server_requests_seconds_count{status=~"5..", uri!~"/actuator.*|/chaos.*"}[1m]))
+           /
+           sum by (application, instance) (rate(http_server_requests_seconds_count{uri!~"/actuator.*|/chaos.*"}[1m]))) > 0.05
+        for: 1m
+        labels:
+          severity: critical
+          runbook: "02-error-rate"
+        annotations:
+          summary: "{{ $labels.application }} 5xx > 5% @ {{ $labels.instance }}"
+          dashboard: "http://localhost:3000/d/svc-overview/service-overview?var-app={{ $labels.application }}"
+          trace_link: "http://localhost:18080/trace?serviceName={{ $labels.application }}"
+          runbook_url: "https://github.com/REPLACE_ME/easyview-demo/blob/main/runbook/02-error-rate.md"
+
+      - alert: JvmFullGcFrequent
+        expr: |
+          sum by (application, instance) (
+            rate(jvm_gc_pause_seconds_count{action="end of major GC"}[1m])
+          ) > 0.05
+        for: 1m
+        labels:
+          severity: critical
+          runbook: "03-jvm-fullgc"
+        annotations:
+          summary: "{{ $labels.application }} Full GC frequent @ {{ $labels.instance }}"
+          dashboard: "http://localhost:3000/d/svc-overview/service-overview?var-app={{ $labels.application }}"
+          runbook_url: "https://github.com/REPLACE_ME/easyview-demo/blob/main/runbook/03-jvm-fullgc.md"
+
+      - alert: DbRtHigh
+        expr: |
+          histogram_quantile(0.99,
+            sum by (le, application, instance) (
+              rate(http_server_requests_seconds_bucket{uri=~"/api/(order|inventory)/.*"}[1m])
+            )
+          ) > 1.2
+        for: 1m
+        labels:
+          severity: warning
+          runbook: "04-db-slow"
+        annotations:
+          summary: "{{ $labels.application }} DB-fronted endpoint slow @ {{ $labels.instance }}"
+          trace_link: "http://localhost:18080/trace?serviceName={{ $labels.application }}"
+          runbook_url: "https://github.com/REPLACE_ME/easyview-demo/blob/main/runbook/04-db-slow.md"
+
+      - alert: SingleInstanceCpuHigh
+        expr: |
+          process_cpu_usage{application=~"order|inventory|gateway"} > 0.85
+        for: 1m
+        labels:
+          severity: warning
+          runbook: "05-single-instance"
+        annotations:
+          summary: "{{ $labels.application }} CPU > 85% @ {{ $labels.instance }}"
+          dashboard: "http://localhost:3000/d/svc-overview/service-overview?var-app={{ $labels.application }}"
+          runbook_url: "https://github.com/REPLACE_ME/easyview-demo/blob/main/runbook/05-single-instance.md"

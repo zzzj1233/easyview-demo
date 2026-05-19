@@ -1,0 +1,12 @@
+target/
+*.class
+*.jar
+!skywalking-agent.jar
+*.log
+*.pid
+.idea/
+.vscode/
+*.iml
+.DS_Store
+infra/skywalking-agent/
+!infra/skywalking-agent/.gitkeep

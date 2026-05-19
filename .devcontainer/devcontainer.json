@@ -1,0 +1,57 @@
+{
+  "name": "easyview-demo",
+  "image": "mcr.microsoft.com/devcontainers/java:1-17-bookworm",
+
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "dockerDashComposeVersion": "v2"
+    },
+    "ghcr.io/devcontainers-contrib/features/k6:1": {}
+  },
+
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+
+  "forwardPorts": [3000, 9090, 9093, 18080, 8080, 8081, 8082, 3306, 6379],
+
+  "portsAttributes": {
+    "3000":  { "label": "Grafana",       "visibility": "public",  "onAutoForward": "openBrowserOnce" },
+    "9090":  { "label": "Prometheus",    "visibility": "public" },
+    "9093":  { "label": "AlertManager",  "visibility": "private" },
+    "18080": { "label": "SkyWalking UI", "visibility": "public",  "onAutoForward": "openBrowserOnce" },
+    "8080":  { "label": "Gateway API",   "visibility": "public" },
+    "8081":  { "label": "Order Service", "visibility": "private" },
+    "8082":  { "label": "Inventory Svc", "visibility": "private" },
+    "3306":  { "label": "MySQL",         "visibility": "private" },
+    "6379":  { "label": "Redis",         "visibility": "private" }
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "postStartCommand":  "bash .devcontainer/post-start.sh",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "vscjava.vscode-java-pack",
+        "vmware.vscode-boot-dev-pack",
+        "redhat.vscode-yaml",
+        "ms-azuretools.vscode-docker",
+        "humao.rest-client"
+      ],
+      "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "java.compile.nullAnalysis.mode": "disabled"
+      }
+    }
+  },
+
+  "remoteUser": "vscode",
+
+  "mounts": [
+    "source=easyview-demo-m2,target=/home/vscode/.m2,type=volume"
+  ]
+}

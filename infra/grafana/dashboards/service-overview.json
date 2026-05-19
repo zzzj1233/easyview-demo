@@ -1,0 +1,119 @@
+{
+  "uid": "svc-overview",
+  "title": "Service Overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-15m", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "app",
+        "label": "Application",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": "label_values(http_server_requests_seconds_count, application)",
+        "refresh": 1,
+        "includeAll": false,
+        "multi": false,
+        "current": { "text": "order", "value": "order" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "title": "RED — QPS",
+      "type": "timeseries",
+      "id": 1,
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{
+        "expr": "sum by (uri) (rate(http_server_requests_seconds_count{application=\"$app\",uri!~\"/actuator.*|/chaos.*\"}[1m]))",
+        "legendFormat": "{{uri}}"
+      }],
+      "fieldConfig": { "defaults": { "unit": "reqps" } }
+    },
+    {
+      "title": "RED — Latency P50 / P95 / P99",
+      "type": "timeseries",
+      "id": 2,
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_requests_seconds_bucket{application=\"$app\",uri!~\"/actuator.*|/chaos.*\"}[1m])))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{application=\"$app\",uri!~\"/actuator.*|/chaos.*\"}[1m])))", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{application=\"$app\",uri!~\"/actuator.*|/chaos.*\"}[1m])))", "legendFormat": "p99" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "title": "RED — Error Rate (5xx %)",
+      "type": "timeseries",
+      "id": 3,
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{
+        "expr": "100 * (sum(rate(http_server_requests_seconds_count{application=\"$app\",status=~\"5..\",uri!~\"/actuator.*|/chaos.*\"}[1m])) / sum(rate(http_server_requests_seconds_count{application=\"$app\",uri!~\"/actuator.*|/chaos.*\"}[1m])))",
+        "legendFormat": "5xx %"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent" } }
+    },
+    {
+      "title": "JVM — CPU %",
+      "type": "timeseries",
+      "id": 4,
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{
+        "expr": "100 * process_cpu_usage{application=\"$app\"}",
+        "legendFormat": "{{instance}}"
+      }],
+      "fieldConfig": { "defaults": { "unit": "percent", "max": 100, "min": 0 } }
+    },
+    {
+      "title": "JVM — Heap Used (MB)",
+      "type": "timeseries",
+      "id": 5,
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{
+        "expr": "jvm_memory_used_bytes{application=\"$app\",area=\"heap\"} / 1024 / 1024",
+        "legendFormat": "{{id}}"
+      }],
+      "fieldConfig": { "defaults": { "unit": "decmbytes" } }
+    },
+    {
+      "title": "JVM — GC pause rate (per sec)",
+      "type": "timeseries",
+      "id": 6,
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 7 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(jvm_gc_pause_seconds_count{application=\"$app\",action=\"end of minor GC\"}[1m])", "legendFormat": "Young GC" },
+        { "expr": "rate(jvm_gc_pause_seconds_count{application=\"$app\",action=\"end of major GC\"}[1m])", "legendFormat": "Full GC" }
+      ]
+    },
+    {
+      "title": "DB — HikariCP Active",
+      "type": "timeseries",
+      "id": 7,
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{
+        "expr": "hikaricp_connections_active{application=\"$app\"}",
+        "legendFormat": "active"
+      }]
+    },
+    {
+      "title": "Endpoints — QPS by URI",
+      "type": "bargauge",
+      "id": 8,
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 14 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{
+        "expr": "topk(10, sum by (uri) (rate(http_server_requests_seconds_count{application=\"$app\",uri!~\"/actuator.*\"}[1m])))",
+        "legendFormat": "{{uri}}"
+      }]
+    }
+  ]
+}

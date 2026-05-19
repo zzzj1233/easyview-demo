@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: order
+  datasource:
+    url: jdbc:mysql://localhost:3306/demo?useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 1s
+
+client:
+  inventory:
+    url: http://localhost:8082
+
+server:
+  port: 8081
+  tomcat:
+    threads:
+      max: 50
+    accept-count: 50
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+    tags:
+      application: ${spring.application.name}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.jdbc: WARN
+    com.demo.order: INFO

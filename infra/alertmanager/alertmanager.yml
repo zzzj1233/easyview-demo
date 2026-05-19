@@ -1,0 +1,20 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  group_by: ['alertname', 'application']
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 5m
+  receiver: 'default-webhook'
+
+receivers:
+  - name: 'default-webhook'
+    webhook_configs:
+      - url: 'http://host.docker.internal:8080/alert/webhook'
+        send_resolved: true
+
+inhibit_rules:
+  - source_match: { severity: 'critical' }
+    target_match: { severity: 'warning' }
+    equal: ['alertname', 'application']

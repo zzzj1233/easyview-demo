@@ -1,0 +1,37 @@
+### gateway → order → inventory（正常）
+GET http://localhost:8080/api/order/1
+
+### 直接调 order（绕过 gateway）
+GET http://localhost:8081/api/order/2
+
+### 直接调 inventory
+GET http://localhost:8082/api/inventory/SKU-1
+
+### ---------- 故障注入 ----------
+
+### 01 RT 飙升：order 接口慢 2s
+POST http://localhost:8081/chaos/latency?ms=2000
+
+### 02 错误率：inventory 30% 抛错
+POST http://localhost:8082/chaos/error?percent=30
+
+### 03 OOM：order 加 200MB 堆
+POST http://localhost:8081/chaos/oom?mb=200
+
+### 04 DB 慢：inventory 查询慢 1.5s
+POST http://localhost:8082/chaos/db-slow?ms=1500
+
+### 05 CPU 100%：inventory 烧 CPU 300s
+POST http://localhost:8082/chaos/cpu?seconds=300
+
+### Reset all
+POST http://localhost:8080/chaos/reset
+POST http://localhost:8081/chaos/reset
+POST http://localhost:8082/chaos/reset
+
+### ---------- 查看状态 ----------
+GET http://localhost:8081/chaos/status
+GET http://localhost:8082/chaos/status
+
+### Prometheus reload rules
+POST http://localhost:9090/-/reload
