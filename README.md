@@ -34,6 +34,10 @@
    k6 run load/k6-baseline.js
    ```
 5. 选一个剧本演练：[runbook/](./runbook/)
+6. 需要 JVM 现场排查时，直接启动 Arthas：
+   ```bash
+   java -jar tools/arthas-boot.jar
+   ```
 
 ## 本地启动
 
@@ -76,6 +80,7 @@ debugger 端口约定：`5000 + service port`，即 gateway=15080 / order=15081 
 | trace / log / metric 三大可观测打通 | logback `[%X{traceId:-N/A}][%tid]` + GRPCLogClientAppender |
 | 一服务一面板（RED + JVM + DB） | `infra/grafana/dashboards/service-overview.json` |
 | 跨服务 traceId 透传 | SkyWalking Java agent 自动织入 |
+| JVM 现场排查 | Codespaces 初始化下载 `tools/arthas-boot.jar`，可直接 attach gateway/order/inventory |
 | Runbook 即文档即执行 | `runbook/*.md` 全部可复制运行 |
 
 ## 端口速查

@@ -8,6 +8,20 @@
 4. **得出结论**：故障域 + 触发因子 + 止血方案
 5. **reset** 恢复
 
+需要方法级现场证据时，可以在 Codespaces 终端启动 Arthas：
+
+```bash
+java -jar tools/arthas-boot.jar
+```
+
+常用命令：
+
+```bash
+trace com.demo.order.service.OrderService getOrder '#cost > 1000'
+watch com.demo.order.service.OrderService getOrder '{params, returnObj, #cost}' '#cost > 1000' -x 2
+thread -n 5
+```
+
 | # | 故障 | 入口 | 期望 MTTI |
 |---|---|---|---|
 | [01](./01-rt-high.md) | order RT > 1s | `/chaos/latency` | 2~3 min |
