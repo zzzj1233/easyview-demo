@@ -15,6 +15,7 @@
     </parent>
 
     <modules>
+        <module>services/api</module>
         <module>services/gateway</module>
         <module>services/order</module>
         <module>services/inventory</module>
@@ -27,6 +28,9 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <skywalking-toolkit.version>9.3.0</skywalking-toolkit.version>
         <spring-cloud.version>2023.0.1</spring-cloud.version>
+        <dubbo.version>3.2.15</dubbo.version>
+        <sentinel.version>1.8.8</sentinel.version>
+        <spring-cloud-alibaba.version>2023.0.1.2</spring-cloud-alibaba.version>
     </properties>
 
     <dependencyManagement>
@@ -47,6 +51,30 @@
                 <groupId>org.apache.skywalking</groupId>
                 <artifactId>apm-toolkit-trace</artifactId>
                 <version>${skywalking-toolkit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.dubbo</groupId>
+                <artifactId>dubbo-bom</artifactId>
+                <version>${dubbo.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.csp</groupId>
+                <artifactId>sentinel-apache-dubbo3-adapter</artifactId>
+                <version>${sentinel.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.demo</groupId>
+                <artifactId>api</artifactId>
+                <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

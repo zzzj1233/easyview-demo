@@ -23,7 +23,35 @@ services:
     image: ${REG}redis:7-alpine
     restart: unless-stopped
     ports: ["26379:6379"]
-    command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru
+    command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru --slowlog-log-slower-than 10000 --slowlog-max-len 128
+
+  redis-exporter:
+    image: ${REG}oliver006/redis_exporter:v1.62.0
+    restart: unless-stopped
+    depends_on: [redis]
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    ports: ["29121:9121"]
+
+  sentinel-dashboard:
+    image: docker.1ms.run/bladex/sentinel-dashboard:1.8.8
+    restart: unless-stopped
+    environment:
+      JAVA_OPTS: "-Dserver.port=8858 -Dcsp.sentinel.dashboard.server=localhost:8858 -Dproject.name=sentinel-dashboard"
+    ports: ["28858:8858"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+
+  nacos:
+    image: ${REG}nacos/nacos-server:v2.3.2
+    restart: unless-stopped
+    environment:
+      MODE: standalone
+      JVM_XMS: 512m
+      JVM_XMX: 512m
+      TZ: Asia/Shanghai
+    ports:
+      - "28848:8848"
+      - "29848:9848"
 
   elasticsearch:
     image: ${REG}elasticsearch:7.17.0
@@ -101,8 +129,10 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DATABASE_WAL: "true"
       TZ: Asia/Shanghai
     volumes:
+      - grafana-data:/var/lib/grafana
       - ./infra/grafana/provisioning:/etc/grafana/provisioning
       - ./infra/grafana/dashboards:/var/lib/grafana/dashboards
     ports: ["23000:3000"]
@@ -110,3 +140,4 @@ services:
 volumes:
   mysql-data:
   es-data:
+  grafana-data:

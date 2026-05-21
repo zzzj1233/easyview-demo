@@ -1,0 +1,127 @@
+{
+  "title": "Dubbo RPC",
+  "uid": "dubbo-rpc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-15m", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Consumer QPS by interface.method",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [{
+        "expr": "sum by(application, interface, method) (rate(dubbo_consumer_requests_total[1m]))",
+        "legendFormat": "{{application}} -> {{interface}}.{{method}}",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Provider QPS by interface.method",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [{
+        "expr": "sum by(application, interface, method) (rate(dubbo_provider_requests_total[1m]))",
+        "legendFormat": "{{application}} : {{interface}}.{{method}}",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Consumer RT p99 / p95 / p50 (s)",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        { "expr": "histogram_quantile(0.99, sum by(le, interface, method) (rate(dubbo_consumer_rt_milliseconds_histogram_seconds_bucket[1m])))", "legendFormat": "p99 {{interface}}.{{method}}", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum by(le, interface, method) (rate(dubbo_consumer_rt_milliseconds_histogram_seconds_bucket[1m])))", "legendFormat": "p95 {{interface}}.{{method}}", "refId": "B" },
+        { "expr": "histogram_quantile(0.50, sum by(le, interface, method) (rate(dubbo_consumer_rt_milliseconds_histogram_seconds_bucket[1m])))", "legendFormat": "p50 {{interface}}.{{method}}", "refId": "C" }
+      ]
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Consumer Error Rate (%)",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "targets": [{
+        "expr": "sum by(application, interface, method) (rate(dubbo_consumer_requests_failed_total[1m])) / clamp_min(sum by(application, interface, method) (rate(dubbo_consumer_requests_total[1m])), 0.001)",
+        "legendFormat": "{{application}} -> {{interface}}.{{method}}",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 5, "type": "stat", "title": "Dubbo Apps Registered (nacos)",
+      "gridPos": { "x": 0, "y": 16, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "count(count by(application) (dubbo_application_info_total))", "refId": "A" }]
+    },
+    {
+      "id": 6, "type": "stat", "title": "Avg Consumer RT (ms, 1m)",
+      "gridPos": { "x": 6, "y": 16, "w": 6, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "targets": [{
+        "expr": "1000 * sum(rate(dubbo_consumer_rt_milliseconds_histogram_seconds_sum[1m])) / clamp_min(sum(rate(dubbo_consumer_rt_milliseconds_histogram_seconds_count[1m])), 0.001)",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 7, "type": "timeseries", "title": "Provider Thread Pool Active",
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [{
+        "expr": "dubbo_thread_pool_active_size{thread_pool_name=~\"DubboServerHandler-[0-9]+\"}",
+        "legendFormat": "{{application}} {{thread_pool_name}} (active)",
+        "refId": "A"
+      },
+      {
+        "expr": "dubbo_thread_pool_max_size{thread_pool_name=~\"DubboServerHandler-[0-9]+\"}",
+        "legendFormat": "{{application}} {{thread_pool_name}} (max)",
+        "refId": "B"
+      }]
+    },
+    {
+      "id": 8, "type": "timeseries", "title": "Provider Thread Pool Queue Size",
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "fillOpacity": 20 } } },
+      "targets": [{
+        "expr": "dubbo_thread_pool_queue_size{thread_pool_name=~\"DubboServerHandler-[0-9]+\"}",
+        "legendFormat": "{{application}} {{thread_pool_name}}",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 9, "type": "timeseries", "title": "Provider Thread Pool Usage (%)",
+      "gridPos": { "x": 0, "y": 28, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null }, { "color": "orange", "value": 0.7 }, { "color": "red", "value": 0.9 }
+          ]}
+        }
+      },
+      "targets": [{
+        "expr": "dubbo_thread_pool_active_size{thread_pool_name=~\"DubboServerHandler-[0-9]+\"} / clamp_min(dubbo_thread_pool_max_size{thread_pool_name=~\"DubboServerHandler-[0-9]+\"}, 1)",
+        "legendFormat": "{{application}} {{thread_pool_name}}",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 10, "type": "timeseries", "title": "Provider Thread Pool Rejected /s",
+      "gridPos": { "x": 12, "y": 28, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [{
+        "expr": "rate(dubbo_thread_pool_reject_thread_count{thread_pool_name=~\"DubboServerHandler-[0-9]+\"}[1m])",
+        "legendFormat": "{{application}} {{thread_pool_name}}",
+        "refId": "A"
+      }]
+    }
+  ]
+}

@@ -20,7 +20,10 @@ public class InventoryService {
     public Map<String, Object> getStock(String sku) {
         chaos.maybeLatency();
         chaos.maybeError();
-        chaos.maybeDbDelay();
+        long dbExtra = chaos.dbExtraMs.get();
+        if (dbExtra > 0) {
+            jdbc.queryForObject("SELECT SLEEP(?)", Long.class, dbExtra / 1000.0);
+        }
         return jdbc.queryForList(
                 "SELECT sku, stock, updated_at FROM inventory WHERE sku = ?",
                 sku

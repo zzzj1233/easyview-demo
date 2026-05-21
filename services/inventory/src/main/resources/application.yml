@@ -1,6 +1,14 @@
 spring:
   application:
     name: inventory
+  cloud:
+    sentinel:
+      transport:
+        dashboard: localhost:28858
+        port: 8721
+        client-ip: 172.18.0.1
+      eager: true
+      web-context-unify: false
   datasource:
     url: jdbc:mysql://localhost:23306/demo?useSSL=false&serverTimezone=Asia/Shanghai
     username: root
@@ -28,7 +36,27 @@ management:
     tags:
       application: ${spring.application.name}
 
+dubbo:
+  application:
+    name: inventory
+    qos-enable: false
+  registry:
+    address: nacos://localhost:28848
+  protocol:
+    name: dubbo
+    port: 20882
+  provider:
+    timeout: 3000
+    threads: 200
+  metrics:
+    enable-jvm-metrics: false
+    aggregation:
+      enabled: true
+    histogram:
+      enabled: true
+
 logging:
   level:
     root: INFO
     org.springframework.jdbc: WARN
+    org.apache.dubbo: WARN

@@ -1,6 +1,14 @@
 spring:
   application:
     name: order
+  cloud:
+    sentinel:
+      transport:
+        dashboard: localhost:28858
+        port: 8720
+        client-ip: 172.18.0.1
+      eager: true
+      web-context-unify: false
   datasource:
     url: jdbc:mysql://localhost:23306/demo?useSSL=false&serverTimezone=Asia/Shanghai
     username: root
@@ -14,9 +22,28 @@ spring:
       port: 26379
       timeout: 1s
 
-client:
-  inventory:
-    url: http://localhost:28082
+dubbo:
+  application:
+    name: order
+    qos-enable: false
+  registry:
+    address: nacos://localhost:28848
+  protocol:
+    name: dubbo
+    port: 20881
+  consumer:
+    timeout: 3000
+    retries: 1
+    check: false
+  provider:
+    timeout: 3000
+    threads: 200
+  metrics:
+    enable-jvm-metrics: false
+    aggregation:
+      enabled: true
+    histogram:
+      enabled: true
 
 server:
   port: 28081
@@ -42,3 +69,4 @@ logging:
     root: INFO
     org.springframework.jdbc: WARN
     com.demo.order: INFO
+    org.apache.dubbo: WARN

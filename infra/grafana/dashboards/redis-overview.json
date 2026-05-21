@@ -1,0 +1,153 @@
+{
+  "title": "Redis & 业务工具",
+  "uid": "redis-overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Up",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "mappings": [
+        { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+      ] } },
+      "targets": [{ "expr": "redis_up", "refId": "A" }]
+    },
+    {
+      "id": 2, "type": "stat", "title": "QPS (total ops/s)",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "targets": [{ "expr": "sum(rate(redis_commands_processed_total[1m]))", "refId": "A" }]
+    },
+    {
+      "id": 3, "type": "stat", "title": "内存使用率",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit",
+        "thresholds": { "mode": "absolute", "steps": [
+          { "color": "green", "value": null }, { "color": "orange", "value": 0.7 }, { "color": "red", "value": 0.9 }
+        ]}
+      } },
+      "targets": [{ "expr": "redis_memory_used_bytes / clamp_min(redis_memory_max_bytes, 1)", "refId": "A" }]
+    },
+    {
+      "id": 4, "type": "stat", "title": "key 总数",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "sum(redis_db_keys)", "refId": "A" }]
+    },
+    {
+      "id": 5, "type": "stat", "title": "命中率 (1h)",
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "targets": [{
+        "expr": "sum(rate(redis_keyspace_hits_total[1h])) / clamp_min(sum(rate(redis_keyspace_hits_total[1h])) + sum(rate(redis_keyspace_misses_total[1h])), 1)",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 6, "type": "stat", "title": "连接数 / 阻塞客户端",
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "redis_connected_clients", "legendFormat": "connected", "refId": "A" },
+        { "expr": "redis_blocked_clients", "legendFormat": "blocked", "refId": "B" }
+      ]
+    },
+
+    {
+      "id": 10, "type": "timeseries", "title": "Evicted / Expired / Rejected (rate /s)",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(redis_evicted_keys_total[1m])", "legendFormat": "evicted", "refId": "A" },
+        { "expr": "rate(redis_expired_keys_total[1m])", "legendFormat": "expired", "refId": "B" },
+        { "expr": "rate(redis_rejected_connections_total[1m])", "legendFormat": "rejected-conn", "refId": "C" }
+      ]
+    },
+    {
+      "id": 11, "type": "timeseries", "title": "Slowlog 数量 & Replication / AOF / RDB 状态",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "redis_slowlog_length", "legendFormat": "slowlog len", "refId": "A" },
+        { "expr": "redis_connected_slaves", "legendFormat": "slaves", "refId": "B" },
+        { "expr": "redis_aof_enabled", "legendFormat": "aof enabled", "refId": "C" },
+        { "expr": "redis_rdb_last_bgsave_status", "legendFormat": "rdb bgsave ok", "refId": "D" },
+        { "expr": "redis_rdb_changes_since_last_save", "legendFormat": "rdb changes since save", "refId": "E" }
+      ]
+    },
+
+    {
+      "id": 20, "type": "timeseries", "title": "分布式锁 获取成功率",
+      "gridPos": { "x": 0, "y": 12, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "targets": [{
+        "expr": "sum by(name) (rate(redis_lock_acquire_total{result=\"success\"}[1m])) / clamp_min(sum by(name) (rate(redis_lock_acquire_total[1m])), 0.001)",
+        "legendFormat": "{{name}}", "refId": "A"
+      }]
+    },
+    {
+      "id": 21, "type": "timeseries", "title": "分布式锁 等待耗时 p99",
+      "gridPos": { "x": 8, "y": 12, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [{
+        "expr": "histogram_quantile(0.99, sum by(le, name) (rate(redis_lock_wait_seconds_bucket[1m])))",
+        "legendFormat": "p99 {{name}}", "refId": "A"
+      }]
+    },
+    {
+      "id": 22, "type": "timeseries", "title": "分布式锁 持有耗时 p99",
+      "gridPos": { "x": 16, "y": 12, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [{
+        "expr": "histogram_quantile(0.99, sum by(le, name) (rate(redis_lock_hold_seconds_bucket[1m])))",
+        "legendFormat": "p99 {{name}}", "refId": "A"
+      }]
+    },
+
+    {
+      "id": 30, "type": "timeseries", "title": "限流通过 / 拦截 /s",
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{
+        "expr": "sum by(resource, result) (rate(redis_ratelimit_total[1m]))",
+        "legendFormat": "{{resource}} {{result}}", "refId": "A"
+      }]
+    },
+    {
+      "id": 31, "type": "timeseries", "title": "延迟队列积压 / 消费失败",
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "redis_delayqueue_pending_size", "legendFormat": "pending {{queue}}", "refId": "A" },
+        { "expr": "rate(redis_delayqueue_failed_total[1m])", "legendFormat": "failed/s {{queue}}", "refId": "B" }
+      ]
+    },
+
+    {
+      "id": 40, "type": "timeseries", "title": "排行榜 Key 大小",
+      "gridPos": { "x": 0, "y": 28, "w": 8, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "expr": "redis_leaderboard_size", "legendFormat": "{{board}}", "refId": "A" }]
+    },
+    {
+      "id": 41, "type": "timeseries", "title": "Redis 工具组件调用耗时 p99 (s)",
+      "gridPos": { "x": 8, "y": 28, "w": 16, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        { "expr": "histogram_quantile(0.99, sum by(le, op) (rate(redis_ops_seconds_bucket[1m])))", "legendFormat": "p99 {{op}}", "refId": "A" },
+        { "expr": "histogram_quantile(0.50, sum by(le, op) (rate(redis_ops_seconds_bucket[1m])))", "legendFormat": "p50 {{op}}", "refId": "B" }
+      ]
+    }
+  ]
+}

@@ -23,6 +23,18 @@ scrape_configs:
         labels:
           env: codespaces
 
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  - job_name: 'local-mac'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets:
+          - 10.16.10.184:8090
+        labels:
+          env: local-mac
+
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']

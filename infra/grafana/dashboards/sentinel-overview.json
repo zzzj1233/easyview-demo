@@ -1,0 +1,74 @@
+{
+  "title": "Sentinel Overview",
+  "uid": "sentinel-overview",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-15m", "to": "now" },
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Pass QPS by resource",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [{
+        "expr": "sum by(application, resource) (rate(sentinel_pass_total[1m]))",
+        "legendFormat": "{{application}} {{resource}}",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Block QPS by resource (type)",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [{
+        "expr": "sum by(application, resource, type) (rate(sentinel_block_total[1m]))",
+        "legendFormat": "{{application}} {{resource}} ({{type}})",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Block Rate (%)",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit" } },
+      "targets": [{
+        "expr": "sum by(resource) (rate(sentinel_block_total[1m])) / clamp_min(sum by(resource) (rate(sentinel_block_total[1m])) + sum by(resource) (rate(sentinel_pass_total[1m])), 0.001)",
+        "legendFormat": "{{resource}}",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Exception QPS",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [{
+        "expr": "sum by(application, resource) (rate(sentinel_exception_total[1m]))",
+        "legendFormat": "{{application}} {{resource}}",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "RT p99 / p95 (s)",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        { "expr": "histogram_quantile(0.99, sum by(le, resource) (rate(sentinel_rt_seconds_bucket[1m])))", "legendFormat": "p99 {{resource}}", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum by(le, resource) (rate(sentinel_rt_seconds_bucket[1m])))", "legendFormat": "p95 {{resource}}", "refId": "B" }
+      ]
+    },
+    {
+      "id": 6, "type": "stat", "title": "Total Pass / Block (5m)",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(increase(sentinel_pass_total[5m]))", "legendFormat": "pass", "refId": "A" },
+        { "expr": "sum(increase(sentinel_block_total[5m]))", "legendFormat": "block", "refId": "B" }
+      ]
+    }
+  ]
+}

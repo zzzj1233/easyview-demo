@@ -1,7 +1,9 @@
 package com.demo.order.service;
 
+import com.demo.api.dto.StockDTO;
+import com.demo.api.facade.InventoryFacade;
 import com.demo.order.chaos.ChaosState;
-import com.demo.order.client.InventoryClient;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -19,14 +21,14 @@ public class OrderService {
 
     private final JdbcTemplate jdbc;
     private final StringRedisTemplate redis;
-    private final InventoryClient inventoryClient;
     private final ChaosState chaos;
 
-    public OrderService(JdbcTemplate jdbc, StringRedisTemplate redis,
-                        InventoryClient inventoryClient, ChaosState chaos) {
+    @DubboReference(timeout = 3000, retries = 1, check = false)
+    private InventoryFacade inventoryFacade;
+
+    public OrderService(JdbcTemplate jdbc, StringRedisTemplate redis, ChaosState chaos) {
         this.jdbc = jdbc;
         this.redis = redis;
-        this.inventoryClient = inventoryClient;
         this.chaos = chaos;
     }
 
@@ -38,7 +40,10 @@ public class OrderService {
         String cached = redis.opsForValue().get(cacheKey);
         if (cached != null) log.debug("cache hit id={}", id);
 
-        chaos.maybeDbDelay();
+        long dbExtra = chaos.dbExtraMs.get();
+        if (dbExtra > 0) {
+            jdbc.queryForObject("SELECT SLEEP(?)", Long.class, dbExtra / 1000.0);
+        }
         List<Map<String, Object>> rows = jdbc.queryForList(
                 "SELECT id, sku, qty, status, intent_id, created_at FROM orders WHERE id = ?", id);
         if (rows.isEmpty()) {
@@ -49,8 +54,8 @@ public class OrderService {
         Map<String, Object> order = new HashMap<>(rows.get(0));
         String sku = (String) order.get("sku");
 
-        Map<String, Object> stock = inventoryClient.getStock(sku);
-        order.put("stock", stock.getOrDefault("stock", 0));
+        StockDTO stock = inventoryFacade.getStock(sku);
+        order.put("stock", stock != null ? stock.getStock() : 0);
 
         redis.opsForValue().set(cacheKey, order.toString(), Duration.ofSeconds(30));
         return order;
