@@ -2,7 +2,7 @@ name: easyview-demo
 
 services:
   mysql:
-    image: mysql:8.0
+    image: ${REG}mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: demo
@@ -19,12 +19,12 @@ services:
       retries: 20
 
   redis:
-    image: redis:7-alpine
+    image: ${REG}redis:7-alpine
     ports: ["26379:6379"]
     command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru
 
   elasticsearch:
-    image: elasticsearch:7.17.0
+    image: ${REG}elasticsearch:7.17.0
     environment:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
@@ -37,7 +37,7 @@ services:
       - es-data:/usr/share/elasticsearch/data
 
   sw-oap:
-    image: apache/skywalking-oap-server:9.7.0
+    image: ${REG}apache/skywalking-oap-server:9.7.0
     depends_on: [elasticsearch]
     environment:
       SW_STORAGE: elasticsearch
@@ -51,7 +51,7 @@ services:
       - "22800:12800"
 
   sw-ui:
-    image: apache/skywalking-ui:9.7.0
+    image: ${REG}apache/skywalking-ui:9.7.0
     depends_on: [sw-oap]
     environment:
       SW_OAP_ADDRESS: http://sw-oap:12800
@@ -59,7 +59,7 @@ services:
     ports: ["28180:8080"]
 
   prometheus:
-    image: prom/prometheus:v2.51.0
+    image: ${REG}prom/prometheus:v2.51.0
     volumes:
       - ./infra/prometheus:/etc/prometheus
     command:
@@ -72,7 +72,7 @@ services:
       - "host.docker.internal:host-gateway"
 
   alertmanager:
-    image: prom/alertmanager:v0.27.0
+    image: ${REG}prom/alertmanager:v0.27.0
     volumes:
       - ./infra/alertmanager:/etc/alertmanager
     ports: ["29093:9093"]
@@ -80,7 +80,7 @@ services:
       - "host.docker.internal:host-gateway"
 
   grafana:
-    image: grafana/grafana:10.4.2
+    image: ${REG}grafana/grafana:10.4.2
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_AUTH_ANONYMOUS_ENABLED: "true"
