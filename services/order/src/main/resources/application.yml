@@ -2,7 +2,7 @@ spring:
   application:
     name: order
   datasource:
-    url: jdbc:mysql://localhost:3306/demo?useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:23306/demo?useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: root
     hikari:
@@ -11,15 +11,15 @@ spring:
   data:
     redis:
       host: localhost
-      port: 6379
+      port: 26379
       timeout: 1s
 
 client:
   inventory:
-    url: http://localhost:8082
+    url: http://localhost:28082
 
 server:
-  port: 8081
+  port: 28081
   tomcat:
     threads:
       max: 50

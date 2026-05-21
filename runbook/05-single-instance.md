@@ -3,7 +3,7 @@
 ## 注入
 
 ```bash
-curl -X POST localhost:8082/chaos/cpu?seconds=300
+curl -X POST localhost:28082/chaos/cpu?seconds=300
 ```
 
 期望 1 分钟内触发 `SingleInstanceCpuHigh @ inventory`。

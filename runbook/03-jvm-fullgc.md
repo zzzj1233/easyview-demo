@@ -4,9 +4,9 @@
 
 ```bash
 # 模拟内存泄漏：往 static List 灌 200 MB（接近 -Xmx256m 上限）
-curl -X POST localhost:8081/chaos/oom?mb=200
+curl -X POST localhost:28081/chaos/oom?mb=200
 # 再灌一次，必然 Full GC + 大概率 OOM
-curl -X POST localhost:8081/chaos/oom?mb=80
+curl -X POST localhost:28081/chaos/oom?mb=80
 ```
 
 期望 1~2 分钟触发 `JvmFullGcFrequent`（或 OOM 直接抛错触发 `ServiceErrorRateHigh`）。
@@ -72,7 +72,7 @@ git log --oneline --since="1 hour ago"
 ## 止血
 
 ```bash
-curl -X POST localhost:8081/chaos/reset   # 清 List，但不会立刻 GC
+curl -X POST localhost:28081/chaos/reset   # 清 List，但不会立刻 GC
 ./dev.sh order restart                    # 干净重启更稳
 ```
 

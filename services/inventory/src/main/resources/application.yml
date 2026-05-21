@@ -2,7 +2,7 @@ spring:
   application:
     name: inventory
   datasource:
-    url: jdbc:mysql://localhost:3306/demo?useSSL=false&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:23306/demo?useSSL=false&serverTimezone=Asia/Shanghai
     username: root
     password: root
     hikari:
@@ -10,7 +10,7 @@ spring:
       minimum-idle: 2
 
 server:
-  port: 8082
+  port: 28082
   tomcat:
     threads:
       max: 50

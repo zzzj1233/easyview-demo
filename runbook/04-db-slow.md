@@ -3,7 +3,7 @@
 ## 注入
 
 ```bash
-curl -X POST localhost:8082/chaos/db-slow?ms=1500
+curl -X POST localhost:28082/chaos/db-slow?ms=1500
 ```
 
 期望 1~2 分钟触发 `DbRtHigh @ inventory`。
@@ -60,7 +60,7 @@ git log --oneline --since="1 hour ago"
 ## 止血
 
 ```bash
-curl -X POST localhost:8082/chaos/reset
+curl -X POST localhost:28082/chaos/reset
 ```
 
 ## 验收

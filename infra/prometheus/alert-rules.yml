@@ -17,8 +17,8 @@ groups:
         annotations:
           summary: "{{ $labels.application }} P99 > 1s @ {{ $labels.instance }}"
           description: "P99 latency exceeded 1s for 1 minute. Likely caused by slow DB / GC / downstream / code bug."
-          dashboard: "http://localhost:3000/d/svc-overview/service-overview?var-app={{ $labels.application }}"
-          trace_link: "http://localhost:18080/trace?serviceName={{ $labels.application }}"
+          dashboard: "http://localhost:23000/d/svc-overview/service-overview?var-app={{ $labels.application }}"
+          trace_link: "http://localhost:28180/trace?serviceName={{ $labels.application }}"
           runbook_url: "https://github.com/zzzj1233/easyview-demo/blob/main/runbook/01-rt-high.md"
 
       - alert: ServiceErrorRateHigh
@@ -32,8 +32,8 @@ groups:
           runbook: "02-error-rate"
         annotations:
           summary: "{{ $labels.application }} 5xx > 5% @ {{ $labels.instance }}"
-          dashboard: "http://localhost:3000/d/svc-overview/service-overview?var-app={{ $labels.application }}"
-          trace_link: "http://localhost:18080/trace?serviceName={{ $labels.application }}"
+          dashboard: "http://localhost:23000/d/svc-overview/service-overview?var-app={{ $labels.application }}"
+          trace_link: "http://localhost:28180/trace?serviceName={{ $labels.application }}"
           runbook_url: "https://github.com/zzzj1233/easyview-demo/blob/main/runbook/02-error-rate.md"
 
       - alert: JvmFullGcFrequent
@@ -47,7 +47,7 @@ groups:
           runbook: "03-jvm-fullgc"
         annotations:
           summary: "{{ $labels.application }} Full GC frequent @ {{ $labels.instance }}"
-          dashboard: "http://localhost:3000/d/svc-overview/service-overview?var-app={{ $labels.application }}"
+          dashboard: "http://localhost:23000/d/svc-overview/service-overview?var-app={{ $labels.application }}"
           runbook_url: "https://github.com/zzzj1233/easyview-demo/blob/main/runbook/03-jvm-fullgc.md"
 
       - alert: DbRtHigh
@@ -63,7 +63,7 @@ groups:
           runbook: "04-db-slow"
         annotations:
           summary: "{{ $labels.application }} DB-fronted endpoint slow @ {{ $labels.instance }}"
-          trace_link: "http://localhost:18080/trace?serviceName={{ $labels.application }}"
+          trace_link: "http://localhost:28180/trace?serviceName={{ $labels.application }}"
           runbook_url: "https://github.com/zzzj1233/easyview-demo/blob/main/runbook/04-db-slow.md"
 
       - alert: SingleInstanceCpuHigh
@@ -75,5 +75,5 @@ groups:
           runbook: "05-single-instance"
         annotations:
           summary: "{{ $labels.application }} CPU > 85% @ {{ $labels.instance }}"
-          dashboard: "http://localhost:3000/d/svc-overview/service-overview?var-app={{ $labels.application }}"
+          dashboard: "http://localhost:23000/d/svc-overview/service-overview?var-app={{ $labels.application }}"
           runbook_url: "https://github.com/zzzj1233/easyview-demo/blob/main/runbook/05-single-instance.md"

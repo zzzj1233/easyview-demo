@@ -1,3 +1,5 @@
+name: easyview-demo
+
 services:
   mysql:
     image: mysql:8.0
@@ -6,7 +8,7 @@ services:
       MYSQL_DATABASE: demo
       TZ: Asia/Shanghai
     command: --default-authentication-plugin=mysql_native_password --innodb-buffer-pool-size=128M --max-connections=100
-    ports: ["3306:3306"]
+    ports: ["23306:3306"]
     volumes:
       - mysql-data:/var/lib/mysql
       - ./infra/mysql-init:/docker-entrypoint-initdb.d
@@ -18,7 +20,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports: ["6379:6379"]
+    ports: ["26379:6379"]
     command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru
 
   elasticsearch:
@@ -30,7 +32,7 @@ services:
       - TZ=Asia/Shanghai
     ulimits:
       memlock: { soft: -1, hard: -1 }
-    ports: ["9200:9200"]
+    ports: ["29200:9200"]
     volumes:
       - es-data:/usr/share/elasticsearch/data
 
@@ -44,7 +46,9 @@ services:
       SW_CORE_METRICS_DATA_TTL: 3
       JAVA_OPTS: "-Xms512m -Xmx512m"
       TZ: Asia/Shanghai
-    ports: ["11800:11800", "12800:12800"]
+    ports:
+      - "21800:11800"
+      - "22800:12800"
 
   sw-ui:
     image: apache/skywalking-ui:9.7.0
@@ -52,7 +56,7 @@ services:
     environment:
       SW_OAP_ADDRESS: http://sw-oap:12800
       TZ: Asia/Shanghai
-    ports: ["18080:8080"]
+    ports: ["28180:8080"]
 
   prometheus:
     image: prom/prometheus:v2.51.0
@@ -63,7 +67,7 @@ services:
       - --storage.tsdb.retention.time=2h
       - --storage.tsdb.retention.size=256MB
       - --web.enable-lifecycle
-    ports: ["9090:9090"]
+    ports: ["29090:9090"]
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -71,7 +75,9 @@ services:
     image: prom/alertmanager:v0.27.0
     volumes:
       - ./infra/alertmanager:/etc/alertmanager
-    ports: ["9093:9093"]
+    ports: ["29093:9093"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   grafana:
     image: grafana/grafana:10.4.2
@@ -79,12 +85,11 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
-      GF_AUTH_DISABLE_LOGIN_FORM: "false"
       TZ: Asia/Shanghai
     volumes:
       - ./infra/grafana/provisioning:/etc/grafana/provisioning
       - ./infra/grafana/dashboards:/var/lib/grafana/dashboards
-    ports: ["3000:3000"]
+    ports: ["23000:3000"]
 
 volumes:
   mysql-data:

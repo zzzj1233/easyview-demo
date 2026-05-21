@@ -10,7 +10,7 @@ export const options = {
   },
 };
 
-const BASE = __ENV.BASE_URL || 'http://localhost:8080';
+const BASE = __ENV.BASE_URL || 'http://localhost:28080';
 
 export default function () {
   const id = Math.floor(Math.random() * 5) + 1;

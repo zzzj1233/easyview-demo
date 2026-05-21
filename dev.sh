@@ -18,9 +18,9 @@ if [ -z "$APP" ]; then
 fi
 
 case "$APP" in
-  gateway)   PORT=8080 ;;
-  order)     PORT=8081 ;;
-  inventory) PORT=8082 ;;
+  gateway)   PORT=28080 ;;
+  order)     PORT=28081 ;;
+  inventory) PORT=28082 ;;
   *) echo "unknown app $APP"; exit 1 ;;
 esac
 
@@ -28,7 +28,7 @@ SW_AGENT="$PWD/infra/skywalking-agent/skywalking-agent.jar"
 LOG="services/$APP/app.log"
 PID_FILE="services/$APP/app.pid"
 JAR="services/$APP/target/$APP-1.0.0.jar"
-DEBUG_PORT=$((5000 + PORT))
+DEBUG_PORT=$((PORT + 10000))
 
 build() {
   echo ">>> mvn build $APP (incremental)"
@@ -61,7 +61,7 @@ start() {
   nohup java \
     -javaagent:"$SW_AGENT" \
     -Dskywalking.agent.service_name="$APP" \
-    -Dskywalking.collector.backend_service=localhost:11800 \
+    -Dskywalking.collector.backend_service=localhost:21800 \
     -Dskywalking.logging.level=WARN \
     -Dserver.port=$PORT \
     -Xmx256m -Xms128m \

@@ -3,7 +3,7 @@
 ## 注入
 
 ```bash
-curl -X POST localhost:8081/chaos/latency?ms=2000
+curl -X POST localhost:28081/chaos/latency?ms=2000
 ```
 
 期望：2 分钟内 Prometheus 触发 `ServiceRTHigh`，gateway 日志出现：
@@ -12,7 +12,7 @@ curl -X POST localhost:8081/chaos/latency?ms=2000
 [ALERT] ServiceRTHigh status=firing
         application=order severity=warning
         summary    : order P99 > 1s @ host.docker.internal:8081
-        trace_link : http://localhost:18080/trace?serviceName=order
+        trace_link : http://localhost:28180/trace?serviceName=order
         runbook    : .../runbook/01-rt-high.md
 ```
 
@@ -72,7 +72,7 @@ git log --oneline --since="1 hour ago"
 ## 止血
 
 ```bash
-curl -X POST localhost:8081/chaos/reset
+curl -X POST localhost:28081/chaos/reset
 ```
 
 ## 验收
