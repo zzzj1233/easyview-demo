@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
 # 一键拉起整个 demo（dev 机：goldhorse 172.16.50.112）
-# 步骤：1) 下 SkyWalking agent  2) mvn build  3) docker compose up  4) 启 3 个 Java 服务
+# 步骤：1) 下 SkyWalking agent  2) mvn build  3) $DC up  4) 启 3 个 Java 服务
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 ROOT=$PWD
 SW_AGENT_DIR="$ROOT/infra/skywalking-agent"
+
+if command -v docker-compose >/dev/null 2>&1; then
+  DC="docker-compose"
+else
+  DC="docker compose"
+fi
+echo "    using compose command: $DC"
 
 echo "===> [1/4] download SkyWalking Java agent 9.6.0"
 if [ ! -f "$SW_AGENT_DIR/skywalking-agent.jar" ]; then
@@ -22,8 +29,8 @@ echo "===> [2/4] mvn build (parallel)"
 mvn -T 4 -DskipTests clean package -q
 
 echo
-echo "===> [3/4] docker compose up -d (project=easyview-demo)"
-docker compose up -d
+echo "===> [3/4] $DC up -d (project=easyview-demo)"
+$DC up -d
 echo "    waiting for SkyWalking OAP ready (gRPC 21800)..."
 for i in $(seq 1 60); do
   (echo > /dev/tcp/127.0.0.1/21800) >/dev/null 2>&1 && { echo "    OAP ready in ${i}s"; break; }
@@ -31,7 +38,7 @@ for i in $(seq 1 60); do
 done
 echo "    waiting for MySQL ready..."
 for i in $(seq 1 60); do
-  docker compose exec -T mysql mysqladmin ping -uroot -proot >/dev/null 2>&1 && { echo "    MySQL ready in ${i}s"; break; }
+  $DC exec -T mysql mysqladmin ping -uroot -proot >/dev/null 2>&1 && { echo "    MySQL ready in ${i}s"; break; }
   sleep 2
 done
 

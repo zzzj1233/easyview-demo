@@ -3,12 +3,18 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
+if command -v docker-compose >/dev/null 2>&1; then
+  DC="docker-compose"
+else
+  DC="docker compose"
+fi
+
 echo "===> [1/4] stop java services"
 bash services/stop-all.sh 2>/dev/null || true
 
 echo
-echo "===> [2/4] docker compose down -v (remove volumes)"
-docker compose down -v --remove-orphans
+echo "===> [2/4] $DC down -v (remove volumes)"
+$DC down -v --remove-orphans
 
 echo
 echo "===> [3/4] remove demo-specific images (skywalking, alertmanager, prometheus, grafana)"
