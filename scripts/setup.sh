@@ -15,6 +15,7 @@ fi
 echo "    using compose command: $DC"
 
 echo "===> [1/4] download SkyWalking Java agent 9.6.0"
+mkdir -p "$SW_AGENT_DIR"
 if [ ! -f "$SW_AGENT_DIR/skywalking-agent.jar" ]; then
   rm -rf /tmp/skywalking-agent /tmp/sw.tgz
   curl -fsSL https://dlcdn.apache.org/skywalking/java-agent/9.6.0/apache-skywalking-java-agent-9.6.0.tgz -o /tmp/sw.tgz
