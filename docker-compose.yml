@@ -3,6 +3,7 @@ name: easyview-demo
 services:
   mysql:
     image: ${REG}mysql:8.0
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: demo
@@ -20,11 +21,13 @@ services:
 
   redis:
     image: ${REG}redis:7-alpine
+    restart: unless-stopped
     ports: ["26379:6379"]
     command: redis-server --maxmemory 64mb --maxmemory-policy allkeys-lru
 
   elasticsearch:
     image: ${REG}elasticsearch:7.17.0
+    restart: unless-stopped
     environment:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
@@ -35,10 +38,19 @@ services:
     ports: ["29200:9200"]
     volumes:
       - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health | grep -E 'green|yellow' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
 
   sw-oap:
     image: ${REG}apache/skywalking-oap-server:9.7.0
-    depends_on: [elasticsearch]
+    restart: unless-stopped
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
     environment:
       SW_STORAGE: elasticsearch
       SW_STORAGE_ES_CLUSTER_NODES: elasticsearch:9200
@@ -52,6 +64,7 @@ services:
 
   sw-ui:
     image: ${REG}apache/skywalking-ui:9.7.0
+    restart: unless-stopped
     depends_on: [sw-oap]
     environment:
       SW_OAP_ADDRESS: http://sw-oap:12800
@@ -60,6 +73,7 @@ services:
 
   prometheus:
     image: ${REG}prom/prometheus:v2.51.0
+    restart: unless-stopped
     volumes:
       - ./infra/prometheus:/etc/prometheus
     command:
@@ -73,6 +87,7 @@ services:
 
   alertmanager:
     image: ${REG}prom/alertmanager:v0.27.0
+    restart: unless-stopped
     volumes:
       - ./infra/alertmanager:/etc/alertmanager
     ports: ["29093:9093"]
@@ -81,6 +96,7 @@ services:
 
   grafana:
     image: ${REG}grafana/grafana:10.4.2
+    restart: unless-stopped
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_AUTH_ANONYMOUS_ENABLED: "true"
